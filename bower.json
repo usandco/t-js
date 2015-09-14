@@ -5,7 +5,7 @@
   "authors": [
     "Franky Chanyau <franky@movingvillage.com>"
   ],
-  "main": ["t.js"],
+  "main": ["t.js", "t.css"],
   "license": "Apache License",
   "ignore": [
     "**/.*",
