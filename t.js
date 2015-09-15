@@ -23,36 +23,40 @@ t.libraries.App = Stapes.subclass({
     Views: {},
     Controller: {},
     isCordova: false,
-    config: {
-    },
-    constructor: function(controller, config){
+    appController: {},
+    constructor: function(appController){
         var self = this;
-        this.config = _.extend(this.config, (typeof config === "undefined" ? {} : config));
+        this.appController = t.libraries.Controller.subclass(appController);
         this.isCordova = !!window.cordova;
         if(this.isCordova){
             this.cordovaExclude();
             $(document).on("deviceready", function(){
-                self.init(controller);
+                self.init();
             })
         }else{
             $(document).on("ready", function(){
-                self.init(controller);
+                self.init();
             })
         }
     },
-    init: function(controller){
+    init: function(){
         var self = this;
-        this.bodyFix();
-        this.statusBar();
-        this.initCollections();
         this.loadViews();
+        this.bodyFix();
+        this.appController = new this.appController(self);
+        self.bindControllerToPage(self.appController);
+        this.initCollections();
         this.Views.on("ready", function(){
-            self.Controller = new t.controllers[controller]();
+            self.Views.registerAllComponents();
+            self.bindControllerToPage(self.appController);
+            self.appController.ready(self);
         })
     },
+    bindControllerToPage: function(controller){
+        rivets.bind($("html"), controller);
+    },
     cordovaExclude: function(){
-        $("t-cordova-exclude").each(function(){
-            // TODO: This isn't working, find out why
+        $("*[t-cordova-exclude]").each(function(){
             $(this).remove();
         });
     },
@@ -71,19 +75,11 @@ t.libraries.App = Stapes.subclass({
     bodyFix: function(){
         $("body").width($(window).width());
         $("body").height($(window).height());
-    },
-    statusBar: function(){
-        if(this.isCordova){
-            StatusBar.overlaysWebView(true);
-            StatusBar.styleLightContent();
-        }
     }
 });
 
 t.libraries.Component = Stapes.subclass({
     attr: {},
-    $view: {},
-    controller: {},
     constructor: function($el, attrs){
         this.attr = attrs;
     }
@@ -99,6 +95,8 @@ t.libraries.Views = Stapes.subclass({
         this.dir = typeof dir !== "undefined" ? dir : "app/views/";
         this.staged = [];
         this.history = [];
+        this.views = [];
+        this.components = [];
         this.loadAllViews();
         this.on("views-loaded", function(){
             self.loadAllComponents();
@@ -114,7 +112,8 @@ t.libraries.Views = Stapes.subclass({
         var N = views.length;
         if(N > 0){
             views.each(function(){
-                self.include($(this), self.dir, function(){
+                self.include($(this), self.dir, function($el){
+                    self.views.push($el.attr("name"));
                     N -= 1;
                     if(N < 1){
                         self.emit("views-loaded");
@@ -132,6 +131,7 @@ t.libraries.Views = Stapes.subclass({
         if(N > 0){
             components.each(function(){
                 self.include($(this), self.dir + "components/", function($el){
+                    self.components.push($el.attr("name"));
                     N -= 1;
                     if(N < 1){
                         self.emit("components-loaded");
@@ -166,36 +166,52 @@ t.libraries.Views = Stapes.subclass({
         html = html.replace(" ]]-->", "");
         return html;
     },
-    registerComponents: function(components, $view, controller){
+    registerAllComponents: function(){
+        return this.registerComponents(this.components);
+    },
+    registerComponents: function(components){
         var self = this;
         _.each(components, function(name){
             var $component = $('t-components > t-component[name="' + name + '"]');
-            self.registerComponent($component, name, $view, controller);
+            self.registerComponent($component, name);
         })
     },
-    registerComponent: function($component, name, $view, controller){
+    registerComponent: function($component, name){
         var self = this;
-        var attrString = $component.attr("attributes");
-        attrString = attrString.split(" ").join("")
-        var attrs = attrString.split(",");
         rivets.components[name] = {
             template: function(){
                 return self.uncomment($component.html());
             },
             initialize: function(el){
                 var $el = $(el);
-                var attributes = {};
-                _.each(attrs, function(attr){
-                    attributes[attr] = $el.attr(attr);
-                });
-                
-                var componentController = typeof t.components[name] !== "undefined" ? new t.components[name]($el, attributes) : new t.libraries.Component($el, attributes);
-                componentController.$view = $view;
-                componentController.controller = controller;
+                var attributes = self.getAttributes($el);
+
+                var controllerName = self.componentControllerName(name);
+                var componentController = typeof t.components[controllerName] !== "undefined" ? new t.components[controllerName]($el, attributes) : new t.libraries.Component($el, attributes);
                 
                 return componentController;
             }
         }
+    },
+    getAttributes: function($el){
+        var attributes = [];
+        $el.each(function(){
+            $.each(this.attributes, function(){
+                if(this.specified){
+                    attributes[this.name] = this.value;
+                }
+            })
+        });
+        return attributes;
+    },
+    componentControllerName: function(name){
+        var parts = name.split("-");
+        _.each(parts, function(part, key){
+            if(key > 0){
+                parts[key] = part.charAt(0).toUpperCase() + part.slice(1);
+            }
+        })
+        return parts.join("");
     },
     stage: function($view, controller, show, hide){
         show = typeof show !== "function" ? controller.show : show;
@@ -252,10 +268,9 @@ t.libraries.Views = Stapes.subclass({
 })
 
 t.libraries.Controller = Stapes.subclass({
-    render: function(viewID, components, onShow, onHide){
+    render: function(viewID, onShow, onHide){
         var $view = $('t-views > t-view[name="' + viewID + '"]');
         var view = t.app.Views.stage($view, this, onShow, onHide);
-        t.app.Views.registerComponents(components, $view, this);
         rivets.bind(view.$view, this);
         t.app.Views.show(view);
     },
@@ -469,7 +484,7 @@ t.libraries.Adapters.socket = Stapes.subclass({
     socket: false,
     modelName: "",
     constructor: function(modelName, forceNew){
-        this.host = t.app.config.socketHost;
+        this.host = t.app.appController.socketHost;
         this.modelName = modelName;
         forceNew = typeof forceNew === "undefined" ? false : forceNew;
         
