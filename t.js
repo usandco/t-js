@@ -44,7 +44,7 @@ t.libraries.App = Stapes.subclass({
         this.loadViews();
         this.bodyFix();
         this.appController = new this.appController(self);
-        self.bindControllerToPage(self.appController);
+        this.bindControllerToPage(this.appController);
         this.initCollections();
         this.Views.on("ready", function(){
             self.Views.registerAllComponents();
