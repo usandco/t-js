@@ -21,7 +21,7 @@ var t = typeof t !== "undefined" ? t : window.t;
 
 t.libraries.App = Stapes.subclass({
     Views: {},
-    Controller: {},
+    controller: {},
     isCordova: false,
     appController: {},
     constructor: function(appController){
@@ -294,7 +294,7 @@ t.libraries.Controller = Stapes.subclass({
         return new Controller();
     },
     goTo: function(controller, args){
-        t.app.Controller = this._construct(t.controllers[controller], args);
+        t.app.controller = this._construct(t.controllers[controller], args);
     },
     goto: function(e, self){
         var controller = $(this).attr("href");
