@@ -77,11 +77,9 @@ t.libraries.App = Stapes.subclass({
             }
         }
         if(construct){
-            this.controller = this._construct(t.controllers[controller], args);
+            this.controller = this._construct(t.controllers[controller], []);
         }
-        if(method !== false){
-            this.controller[method].apply(t.app.controller, args);
-        }
+        this.controller[method].apply(t.app.controller, args);
     },
     initRouter: function(){
         var self = this;
@@ -91,7 +89,7 @@ t.libraries.App = Stapes.subclass({
                 if(typeof action !== "function"){
                     var parts = action.split(".");
                     var controller = parts[0];
-                    var method = typeof parts[1] !== "undefined" ? parts[1] : false;
+                    var method = typeof parts[1] !== "undefined" ? parts[1] : "index";
                     self.router.get(route, function(request){
                         self.goTo(controller, method, [request]);
                     });
@@ -365,13 +363,8 @@ t.libraries.Controller = Stapes.subclass({
         Controller.prototype = controller.prototype;
         return new Controller();
     },
-    goTo: function(controller, args){
-        t.app.controller = this._construct(t.controllers[controller], args);
-    },
-    goto: function(e, self){
-        var controller = $(this).attr("href");
-        self.goTo(controller);
-        return false;
+    goTo: function(controller, method, args){
+        t.app.goTo(controller, method, args);
     },
     back: function(e, self){
         window.history.go(-1);
