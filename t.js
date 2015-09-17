@@ -153,7 +153,7 @@ t.libraries.View = Stapes.subclass({
 t.libraries.Views = Stapes.subclass({
     constructor: function(dir){
         var self = this;
-        this.dir = typeof dir !== "undefined" ? dir : "app/views/";
+        this.dir = typeof dir !== "undefined" ? dir : "/app/views/";
         this.staged = [];
         this.views = [];
         this.components = [];
