@@ -19,6 +19,7 @@
     "underscore": "*",
     "jquery": "*",
     "stapes": "*",
-    "velocity": "*"
+    "velocity": "*",
+    "grapnel": "*"
   }
 }
