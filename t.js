@@ -338,6 +338,9 @@ t.libraries.Views = Stapes.subclass({
 
 t.libraries.Controller = Stapes.subclass({
     __name: "app",
+    ready: function(){
+        
+    },
     render: function(viewID, onShow, onHide){
         var $view = $('t-views > t-view[name="' + viewID + '"]');
         var view = t.app.Views.stage($view, this, onShow, onHide);
