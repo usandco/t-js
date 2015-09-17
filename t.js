@@ -139,15 +139,6 @@ t.libraries.Component = Stapes.subclass({
     constructor: function($el, attrs){
         this.attr = attrs;
     },
-    onClick: function(e, self){
-        e.stopPropagation();
-        var el = this;
-        var event = typeof self.attr['t-on-click'] !== "undefined" ? self.attr['t-on-click'] : false;
-        if(event){
-            t.app.controller[event].apply(el, [e, t.app.controller]);
-            return false;
-        }
-    },
     navigateTo: function(e, self){
         var href = $(this).attr("href");
         t.app.navigate(href);
@@ -257,6 +248,7 @@ t.libraries.Views = Stapes.subclass({
                 var attributes = self.getAttributes($el);
 
                 var controllerName = self.componentControllerName(name);
+                
                 var componentController = typeof t.components[controllerName] !== "undefined" ? new t.components[controllerName]($el, attributes) : new t.libraries.Component($el, attributes);
                 
                 return componentController;
