@@ -3,6 +3,8 @@
  * Proprietary and confidential
  * Written by Francis Chanyau <franky@movingvillage.com>, July 2015
  */
+var defaultViewDir = "/app/views/";
+
 $.fn.exists = function() {
     return this.length > 0;
 }
@@ -391,7 +393,7 @@ t.libraries.View = Stapes.subclass({
 t.libraries.Views = Stapes.subclass({
     constructor: function(dir){
         var self = this;
-        this.dir = typeof dir !== "undefined" ? dir : "./views/";
+        this.dir = typeof dir !== "undefined" ? dir : defaultViewDir;
         this.staged = [];
         this.views = [];
         this.components = [];
