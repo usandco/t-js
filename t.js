@@ -2,7 +2,7 @@ $.fn.exists = function() {
     return this.length > 0;
 }
 
-$.fn.hasAttr = function(name) {  
+$.fn.hasAttr = function(name) {
    var attr = this.attr(name);
    return typeof attr !== 'undefined' && attr !== false;
 };
@@ -147,13 +147,13 @@ t.libraries.Component = Stapes.subclass({
 });
 
 t.libraries.View = Stapes.subclass({
-    
+
 });
-    
+
 t.libraries.Views = Stapes.subclass({
     constructor: function(dir){
         var self = this;
-        this.dir = typeof dir !== "undefined" ? dir : "/app/views/";
+        this.dir = typeof dir !== "undefined" ? dir : "./views/";
         this.staged = [];
         this.views = [];
         this.components = [];
@@ -164,7 +164,7 @@ t.libraries.Views = Stapes.subclass({
         this.on("components-loaded", function(){
             self.emit("ready");
         })
-        
+
     },
     loadAllViews: function(){
         var self = this;
@@ -248,9 +248,9 @@ t.libraries.Views = Stapes.subclass({
                 var attributes = self.getAttributes($el);
 
                 var controllerName = self.componentControllerName(name);
-                
+
                 var componentController = typeof t.components[controllerName] !== "undefined" ? new t.components[controllerName]($el, attributes) : new t.libraries.Component($el, attributes);
-                
+
                 return componentController;
             }
         }
@@ -278,24 +278,24 @@ t.libraries.Views = Stapes.subclass({
     stage: function($view, controller, show, hide){
         show = typeof show !== "function" ? controller.show : show;
         hide = typeof hide !== "function" ? controller.hide : hide;
-        
+
         var html = $view.html();
         html = this.uncomment(html);
-        
+
         var name = $view.attr("name") + "-view";
-        
+
         if($(name).exists()){
             var stagedID = parseInt($(name).attr("data-staged-id"));
             $(name).remove();
             this.staged[stagedID] = null;
         }
-        
+
         var stagedID = this.staged.length;
         $view = $("<" + name + "/>").attr({
             "class": "view",
             "data-staged-id": stagedID
         }).html(html).hide();
-        
+
         var view = new (t.libraries.View.subclass({
             id: stagedID,
             name: name,
@@ -304,11 +304,11 @@ t.libraries.Views = Stapes.subclass({
             show: show,
             hide: hide
         }));
-        
+
         view.$view.appendTo("t-canvas");
-        
+
         this.staged.push(view);
-        
+
         return view;
     },
     show: function(view){
@@ -331,7 +331,7 @@ t.libraries.Views = Stapes.subclass({
 t.libraries.Controller = Stapes.subclass({
     __name: "app",
     ready: function(){
-        
+
     },
     render: function(viewID, onShow, onHide){
         var $view = $('t-views > t-view[name="' + viewID + '"]');
@@ -536,7 +536,7 @@ t.libraries.Adapters.socket = Stapes.subclass({
         this.host = t.app.appController.socketHost;
         this.modelName = modelName;
         forceNew = typeof forceNew === "undefined" ? false : forceNew;
-        
+
         if(forceNew){
             t.app.socket = io(this.host);
         }else{
