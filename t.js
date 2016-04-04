@@ -176,8 +176,15 @@ t.libraries.App = Stapes.subclass({
         $('title').html( $('titlebuffer').html() );
         $('titlebuffer').remove();
     },
-    setTitles: function(title, subtitle){
-        $('title').html( title + " - " + subtitle );
+    setTitles: function (title, subtitle) {
+        $('title').html(title + " | " + subtitle);
+        $('meta[name="og:title"]').attr("content", title + " | " + subtitle);
+        $('meta[name="twitter:title"]').attr("content", title + " | " + subtitle);
+    },
+    setMetaDesc: function (metaDesc) {
+        $('meta[name="description"]').attr("content", metaDesc);
+        $('meta[name="og:description"]').attr("content", metaDesc);
+        $('meta[name="twitter:description"]').attr("content", metaDesc);
     },
     back: function(){
         if(this.history.length > 1){
@@ -610,7 +617,8 @@ t.libraries.Controller = Stapes.subclass({
     },
     render: function(viewID, onShow, onHide){
         var self = this;
-        t.app.setTitles( this.title ? this.title : t.app.appController.title , this.subTitle ? this.subTitle : t.app.appController.subTitle );
+        t.app.setTitles(this.title ? this.title : t.app.appController.title, this.subTitle ? this.subTitle : t.app.appController.subTitle);
+        t.app.setMetaDesc(this.metaDesc ? this.metaDesc : t.app.appController.metaDesc);
         var $view = $('t-views > t-view[name="' + viewID + '"]');
         t.app.Views.stage($view, self, onShow, onHide, function(view){
             rivets.bind(view.$view, self);
